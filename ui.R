@@ -7,7 +7,7 @@ ui = fluidPage(shinyjs::useShinyjs(),
                          tags$head(tags$style("#window .modal{backdrop: 'static'}")),
                          size = "medium",
                          checkboxInput("localDownload", "Download Data Locally", value = TRUE),
-                         selectInput('dataTypes_get', 'Data Types', multiple = TRUE, selected = c('NDVI', 'GCC', 'EVI', 'Transition Dates'), c('NDVI', 'EVI', 'GCC', 'Transition Dates')),
+                         selectInput('dataTypes_get', 'Data Types', multiple = TRUE, selected = c('NDVI', 'GCC', 'EVI', 'Transition Dates'), c('NDVI', 'EVI', 'GCC', 'Transition Dates', 'NPN')),
                          actionButton('getDataButton', 'Get Data'),
                          tags$head(tags$style("#getDataPopup .modal-footer{ display:none}")),
                          helpText(id = 'doneGetData', 'Data Acquired'))
@@ -16,7 +16,7 @@ ui = fluidPage(shinyjs::useShinyjs(),
                          "Select Plot Data", "plotRemoteData",
                          tags$head(tags$style("#window .modal{backdrop: 'static'}")),
                          size = "small",
-                         selectInput('dataTypes_plot', 'Data Types', multiple = TRUE, selected = c('NDVI', 'GCC'), c('NDVI', 'EVI', 'GCC', 'Transition Dates')),
+                         selectInput('dataTypes_plot', 'Data Types', multiple = TRUE, selected = c('NDVI', 'GCC'), c('NDVI', 'EVI', 'GCC', 'Transition Dates', 'NPN')),
                          # selectInput('pixelTypes', 'Pixel Resolution', c('250m', '500m')),
                          sliderInput('dataDateRange', 'Date start to end',
                                      min = as.Date('2000-01-01'),
@@ -31,7 +31,7 @@ ui = fluidPage(shinyjs::useShinyjs(),
                        "Download Data from Plot", "downloadData",
                        tags$head(tags$style("#window .modal{backdrop: 'static'}")),
                        size = "medium",
-                       selectInput('dataTypes_download', 'Data Types', multiple = TRUE, c('NDVI', 'EVI', 'GCC', 'Transition Dates')),
+                       selectInput('dataTypes_download', 'Data Types', multiple = TRUE, c('NDVI', 'EVI', 'GCC', 'Transition Dates', 'NPN')),
                        actionButton('downloadDataButton', 'Download Dataframe'),
                        tags$head(tags$style("#getDataPopup .modal-footer{ display:none}")),
                        helpText(id = 'selectDataframe', 'Data Acquired'))
@@ -109,20 +109,20 @@ ui = fluidPage(shinyjs::useShinyjs(),
                         ), # close tab panel
 
 
-           # tabPanel('pAOI Management',
-           # 
-           #          tags$div(id='pAOItab'),
-           #          selectInput('shapefiles', "Select Shapefile", c('None')),
-           #          actionButton('saveshp', 'Save Shapefile'),
-           #          br(),
-           #          br(), br(),
-           # 
-           # 
-           #          # Attempting to build a chart here for the shapefiles, mihgt move it to a new tab at
-           #          #   some point......
-           #          DTOutput("pAOIchart")
-           # 
-           #         ),
+           tabPanel('pAOI Management',
+
+                    tags$div(id='pAOItab'),
+                    selectInput('shapefiles', "Select Shapefile", c('None')),
+                    actionButton('saveshp', 'Save Shapefile'),
+                    br(),
+                    br(), br(),
+
+
+                    # Attempting to build a chart here for the shapefiles, mihgt move it to a new tab at
+                    #   some point......
+                    DTOutput("pAOIchart")
+
+                   ),
 
            tabPanel('User Guide',
                     includeMarkdown('UserGuide.Rmd')

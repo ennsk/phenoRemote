@@ -38,6 +38,7 @@ library(shinycssloaders)
 library(data.table)
 library(grDevices)
 library(plotly)
+library(rnpn)
 
 library(knitr)
 library(kableExtra)

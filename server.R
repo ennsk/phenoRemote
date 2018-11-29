@@ -28,7 +28,9 @@ server = function(input, output, session) {
   layers  = reactiveValues(evi_MOD13Q1_v6  = FALSE,
                            td_MCD12Q2_v5   = FALSE,
                            ndvi_MOD13Q1_v6 = FALSE,
-                           gcc_Phenocam    = FALSE)
+                           gcc_Phenocam    = FALSE,
+                           df = data.frame(layer = c('NDVI', 'GCC', 'Transition Dates', 'EVI', 'NPN'), bool = c(FALSE,FALSE,FALSE,FALSE,FALSE))
+  )
 
   data    = reactiveValues(
                       draw_mode = FALSE,
@@ -795,7 +797,7 @@ server = function(input, output, session) {
     site          = input$site
     site_data     = get_site_info(site)
     selected_data = input$dataTypes_get
-    data_options  = c('NDVI', 'EVI', 'GCC', 'Transition Dates')
+    data_options  = c('NDVI', 'EVI', 'GCC', 'Transition Dates', 'NPN')
     file_path     = paste0('./www/site_data/', site, '/data_layers/')
 
     print ('Importing data for:')
@@ -966,17 +968,40 @@ server = function(input, output, session) {
         }
       }
     }
+    
+    if (data_options[5] %in% selected_data){
+      print ('Add functionality to Importing NPN Data')
+      
+      # first_year = format(as.Date(site_data$date_first, format = '%Y-%m-%d'), '%Y')
+      # last_year  = format(as.Date(site_data$date_last, format = '%Y-%m-%d'), '%Y')
+      first_year = as.Date(site_data$date_first, format = '%Y-%m-%d')
+      last_year  = as.Date(site_data$date_last, format = '%Y-%m-%d')
+      
+      npn_years = substr(seq(first_year, last_year, "years"), 1, 4)
+      print (npn_years)
+      npn_list = c()
+      for(i in c(1:length(npn_years))){
+        assign(paste0('npn_', npn_years[i]), npn_download_geospatial('si-x:average_leaf_prism', paste0(npn_years[i],'-11-01')) )
+        npn_list = c(npn_list, paste0('npn_', npn_years[i]))
+      }
+      
+      for (x in c(1:length(npn_list))){
+        print (get(npn_list[x]))
+      }
+    }
 
 
 
       # Build [Raster Grid] with raster (NDVI, EVI, or etc.)
       #------------------------------------------------------------------------
+    if (data_options[1] %in% selected_data){
       build_raster_grid(data$r_ndvi_cropped, map = 'map')
       updateCheckboxInput(session, 'highlightPixelModeNDVI', value = TRUE)
 
-
       shinyjs::show(id = 'plotRemoteData')
       shinyjs::hide(id = 'noPixelWarning')
+    }
+    
 
       start_site = as.character(site_data$date_first)
       end_site   = as.character(site_data$date_last)
@@ -1161,6 +1186,30 @@ server = function(input, output, session) {
   count = function(){
     isolate({
       counter$countervalue = counter$countervalue + 1
+    })
+  }
+  
+  # Builds the polygon table to display all user created polygons in analyzer mode
+  build_polygon_table = function(data_df_){
+    # Creating Dataframe with 1 record per shapefile
+    if (nrow(data_df_) == 0){
+      df = setNames(data.frame(matrix(ncol = 3, nrow = 0)), c('Name', 'Longitude', 'Latitude'))
+    }else {
+      df = aggregate(data_df_[,c(2,3)], list(data_df_$Name), max)
+    }
+    x  = df
+    print (x)
+    # x$Date = Sys.time() + seq_len(nrow(x))
+    output$pAOIchart = renderDT(x, selection = 'none', editable = TRUE)
+    proxy            = dataTableProxy('pAOIchart')
+    observeEvent(input$pAOIchart_cell_edit, {
+      info = input$pAOIchart_cell_edit
+      str(info)
+      i = info$row
+      j = info$col
+      v = info$value
+      x[i, j] <<- DT::coerceValue(v, x[i, j])
+      replaceData(proxy, x, resetPaging = FALSE)  # important
     })
   }
 }
